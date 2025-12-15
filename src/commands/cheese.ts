@@ -26,7 +26,7 @@ export const slashCommand: SlashCommand = {
     const targetUser = interaction.options.getUser('user');
     
     if (targetUser) {
-      await interaction.reply(`${targetUser} [.](${CHEESE_GIF})`);
+      await interaction.reply(`${targetUser}[.](${CHEESE_GIF})`);
     } else {
       await interaction.reply(CHEESE_GIF);
     }
