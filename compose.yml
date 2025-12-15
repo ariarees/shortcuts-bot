@@ -1,0 +1,10 @@
+services:
+  bot:
+    build: .
+    container_name: clove-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
