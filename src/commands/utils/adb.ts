@@ -1,14 +1,12 @@
 import {
     ChatInputCommandInteraction,
-    SlashCommandBuilder
+    SlashCommandSubcommandBuilder
 } from 'discord.js';
-import { SlashCommand } from '../../types/Command';
 
 const ADB_MESSAGE = 'Starting December 5, 2025, the active developer badge has been **removed**, and is **no longer** obtainable. There are also *no* plans for a new badge replacing this.';
 
-// Slash command: /adb [user]
-export const slashCommand: SlashCommand = {
-    data: new SlashCommandBuilder()
+export default {
+    data: new SlashCommandSubcommandBuilder()
         .setName('adb')
         .setDescription('Info about the Active Developer Badge')
         .addUserOption(option =>
@@ -28,6 +26,3 @@ export const slashCommand: SlashCommand = {
         }
     }
 };
-
-// Export all commands as an array for the command handler
-export const commands = [slashCommand];

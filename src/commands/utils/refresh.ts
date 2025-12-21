@@ -1,19 +1,12 @@
 import {
-    ApplicationCommandType,
     ChatInputCommandInteraction,
-    SlashCommandBuilder,
-    ContextMenuCommandBuilder,
-    UserContextMenuCommandInteraction,
-    MessageContextMenuCommandInteraction
+    SlashCommandSubcommandBuilder
 } from 'discord.js';
-import { SlashCommand, UserContextMenuCommand, MessageContextMenuCommand } from '../../types/Command';
 
 const REFRESH_MESSAGE = 'To refresh your client to fix bugs or reload commands, use:\nControl + R on Windows and Linux\nCommand(⌘) + R on Mac\nSwipe clear and reopen on Mobile';
 
-
-// Slash command: /pk [user]
-export const slashCommand: SlashCommand = {
-    data: new SlashCommandBuilder()
+export default {
+    data: new SlashCommandSubcommandBuilder()
         .setName('refresh')
         .setDescription('Explain how to refresh clients')
         .addUserOption(option =>
@@ -33,5 +26,3 @@ export const slashCommand: SlashCommand = {
         }
     }
 };
-
-export const commands = [slashCommand];

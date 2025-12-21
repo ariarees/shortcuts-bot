@@ -1,14 +1,12 @@
 import {
     ChatInputCommandInteraction,
-    SlashCommandBuilder
+    SlashCommandSubcommandBuilder
 } from 'discord.js';
-import { SlashCommand } from '../../types/Command';
 
 const GAYZY_MESSAGE = 'Gay?...\nI was gay once...\nThey locked me in a room...\nA rubber room\nA rubber room of cats...\nAnd cats make me gay...';
 
-// Slash command: /gayzy [user]
-export const slashCommand: SlashCommand = {
-    data: new SlashCommandBuilder()
+export default {
+    data: new SlashCommandSubcommandBuilder()
         .setName('gayzy')
         .setDescription('I was gay once')
         .addUserOption(option =>
@@ -28,6 +26,3 @@ export const slashCommand: SlashCommand = {
         }
     }
 };
-
-// Export all commands as an array for the command handler
-export const commands = [slashCommand];

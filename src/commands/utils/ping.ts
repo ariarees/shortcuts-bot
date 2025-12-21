@@ -1,12 +1,10 @@
 import {
     ChatInputCommandInteraction,
-    SlashCommandBuilder
+    SlashCommandSubcommandBuilder
 } from 'discord.js';
-import { SlashCommand } from '../../types/Command';
 
-// Slash command: /ping
-export const slashCommand: SlashCommand = {
-    data: new SlashCommandBuilder()
+export default {
+    data: new SlashCommandSubcommandBuilder()
         .setName('ping')
         .setDescription('Check the bot\'s latency'),
 
@@ -22,6 +20,3 @@ export const slashCommand: SlashCommand = {
         );
     }
 };
-
-// Export all commands as an array for the command handler
-export const commands = [slashCommand];

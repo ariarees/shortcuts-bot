@@ -1,13 +1,12 @@
 import {
     ChatInputCommandInteraction,
-    SlashCommandBuilder,
+    SlashCommandSubcommandBuilder,
     EmbedBuilder,
     ActionRowBuilder,
     StringSelectMenuBuilder,
     StringSelectMenuInteraction,
     ComponentType
 } from 'discord.js';
-import { SlashCommand } from '../../types/Command';
 
 interface CommandCategory {
     id: string;
@@ -18,32 +17,33 @@ interface CommandCategory {
 
 const categories: CommandCategory[] = [
     {
-        id: 'plurality',
+        id: 'dough',
+        name: 'Doughmination',
+        emoji: '🍩',
+        commands: [
+            { name: '/dough health', description: 'Check API connection' }
+        ]
+    },
+    {
+        id: 'plural',
         name: 'Plurality',
         emoji: '🌟',
         commands: [
-            { name: '/plurality', description: 'Information about plurality/multiplicity' },
-            { name: '/pk', description: 'Explain PluralKit bot' },
-            { name: '/plural', description: 'Explain /plu/ral bot' },
-            { name: '/userproxies', description: 'Tutorial on setting up userproxies' }
+            { name: '/plural plurality', description: 'Information about plurality/multiplicity' },
+            { name: '/plural pk', description: 'Explain PluralKit bot' },
+            { name: '/plural plural', description: 'Explain /plu/ral bot' },
+            { name: '/plural userproxies', description: 'Tutorial on setting up userproxies' }
         ]
     },
     {
-        id: 'utility',
+        id: 'utils',
         name: 'Utility',
         emoji: '🔧',
         commands: [
-            { name: '/ping', description: 'Check bot latency' },
-            { name: '/refresh', description: 'How to refresh Discord client' },
-            { name: '/help', description: 'Display this help message' }
-        ]
-    },
-    {
-        id: 'discord',
-        name: 'Discord Info',
-        emoji: 'ℹ️',
-        commands: [
-            { name: '/adb', description: 'Info about Active Developer Badge' }
+            { name: '/utils ping', description: 'Check bot latency' },
+            { name: '/utils refresh', description: 'How to refresh Discord client' },
+            { name: '/utils help', description: 'Display this help message' },
+            { name: '/utils adb', description: 'Info about Active Developer Badge' }
         ]
     },
     {
@@ -51,8 +51,8 @@ const categories: CommandCategory[] = [
         name: 'Personal',
         emoji: '👤',
         commands: [
-            { name: '/userid', description: 'Display bot owner\'s user ID' },
-            { name: '/invite', description: 'Server invite link' }
+            { name: '/personal userid', description: 'Display bot owner\'s user ID' },
+            { name: '/personal invite', description: 'Server invite link' }
         ]
     },
     {
@@ -60,10 +60,25 @@ const categories: CommandCategory[] = [
         name: 'Fun',
         emoji: '🎉',
         commands: [
-            { name: '/cheese', description: 'Send the cheese GIF' },
-            { name: '/crazy', description: 'I was crazy once...' },
-            { name: '/gayzy', description: 'I was gay once...'},
-            { name: '/tone', description: 'Lower someones tone'}
+            { name: '/fun cheese', description: 'Send the cheese GIF' },
+            { name: '/fun crazy', description: 'I was crazy once...' },
+            { name: '/fun gayzy', description: 'I was gay once...'}
+        ]
+    },
+    {
+        id: 'games',
+        name: 'Games',
+        emoji: '🎮',
+        commands: [
+            { name: '/games hytale', description: 'Explain Hytale' }
+        ]
+    },
+    {
+        id: 'nsfw',
+        name: 'NSFW',
+        emoji: '🔞',
+        commands: [
+            { name: '/nsfw tone', description: 'Lower someones tone'}
         ]
     }
 ];
@@ -77,7 +92,7 @@ function createMainEmbed(): EmbedBuilder {
             name: 'Categories',
             value: categories.map(cat => `${cat.emoji} **${cat.name}** - ${cat.commands.length} command${cat.commands.length !== 1 ? 's' : ''}`).join('\n')
         })
-        .setFooter({ text: 'Some commands also have right-click context menu options!' });
+        .setFooter({ text: 'Commands are organized by category!' });
 }
 
 function createCategoryEmbed(category: CommandCategory): EmbedBuilder {
@@ -114,9 +129,8 @@ function createSelectMenu(): ActionRowBuilder<StringSelectMenuBuilder> {
     return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
 }
 
-// Slash command: /help
-export const slashCommand: SlashCommand = {
-    data: new SlashCommandBuilder()
+export default {
+    data: new SlashCommandSubcommandBuilder()
         .setName('help')
         .setDescription('Display all available commands organized by category'),
 
@@ -139,7 +153,7 @@ export const slashCommand: SlashCommand = {
             // Only allow the original user to use the select menu
             if (i.user.id !== interaction.user.id) {
                 await i.reply({
-                    content: 'This help menu is not for you! Use `/help` to get your own.',
+                    content: 'This help menu is not for you! Use `/utils help` to get your own.',
                     ephemeral: true
                 });
                 return;
@@ -176,6 +190,3 @@ export const slashCommand: SlashCommand = {
         });
     }
 };
-
-// Export all commands as an array for the command handler
-export const commands = [slashCommand];

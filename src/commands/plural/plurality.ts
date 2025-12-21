@@ -1,14 +1,12 @@
 import {
     ChatInputCommandInteraction,
-    SlashCommandBuilder
+    SlashCommandSubcommandBuilder
 } from 'discord.js';
-import { SlashCommand } from '../../types/Command';
 
-const PLURALITY_MESSAGE = 'Plurality (or multiplicity) is the existence of multiple self-aware entities inside one physical brain.\nYou can find some simple information [here](<https://morethanone.info>)\nand some more advanced info [here](<https://pluralpedia.org/w/Main_Page>)'
+const PLURALITY_MESSAGE = 'Plurality (or multiplicity) is the existence of multiple self-aware entities inside one physical brain.\nYou can find some simple information [here](<https://morethanone.info>)\nand some more advanced info [here](<https://pluralpedia.org/w/Main_Page>)';
 
-// Slash command: /plurality [user]
-export const slashCommand: SlashCommand = {
-    data: new SlashCommandBuilder()
+export default {
+    data: new SlashCommandSubcommandBuilder()
         .setName('plurality')
         .setDescription('Send information about plurality')
         .addUserOption(option =>
@@ -28,6 +26,3 @@ export const slashCommand: SlashCommand = {
         }
     }
 };
-
-// Export all commands as an array for the command handler
-export const commands = [slashCommand];

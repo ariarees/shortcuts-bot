@@ -1,12 +1,10 @@
 import {
     ChatInputCommandInteraction,
-    SlashCommandBuilder
+    SlashCommandSubcommandBuilder
 } from 'discord.js';
-import { SlashCommand } from '../../types/Command';
 
-// Slash command: /ping
-export const slashCommand: SlashCommand = {
-    data: new SlashCommandBuilder()
+export default {
+    data: new SlashCommandSubcommandBuilder()
         .setName('userid')
         .setDescription('Display personal userid'),
 
@@ -14,6 +12,3 @@ export const slashCommand: SlashCommand = {
         await interaction.reply(`1025770042245251122`);
     }
 };
-
-// Export all commands as an array for the command handler
-export const commands = [slashCommand];
