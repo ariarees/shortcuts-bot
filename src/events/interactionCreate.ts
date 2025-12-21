@@ -1,5 +1,6 @@
-import { Events, Interaction } from 'discord.js';
+import { Events, Interaction, AutocompleteInteraction } from 'discord.js';
 import { loadCommands } from '../handlers/commandHandler';
+import { doughAPI } from '../utils/doughAPI';
 
 export const name = Events.InteractionCreate;
 export const once = false;
@@ -12,6 +13,12 @@ loadCommands().then(loaded => {
 });
 
 export async function execute(interaction: Interaction) {
+    // Handle autocomplete interactions
+    if (interaction.isAutocomplete()) {
+        await handleAutocomplete(interaction);
+        return;
+    }
+
     if (!interaction.isChatInputCommand() && !interaction.isUserContextMenuCommand() && !interaction.isMessageContextMenuCommand()) {
         return;
     }
@@ -34,6 +41,55 @@ export async function execute(interaction: Interaction) {
             await interaction.followUp(errorMessage);
         } else {
             await interaction.reply(errorMessage);
+        }
+    }
+}
+
+async function handleAutocomplete(interaction: AutocompleteInteraction) {
+    const commandName = interaction.commandName;
+    const focusedOption = interaction.options.getFocused(true);
+
+    // Handle dough add/remove autocomplete
+    if (commandName === 'dough' && focusedOption.name === 'member') {
+        const subcommand = interaction.options.getSubcommand();
+        
+        if (subcommand === 'add' || subcommand === 'remove') {
+            try {
+                let members: any[];
+
+                if (subcommand === 'add') {
+                    // For add, show all members
+                    members = await doughAPI.getMembers();
+                } else {
+                    // For remove, show only current fronters
+                    const frontersData = await doughAPI.getFronters();
+                    members = frontersData.members || [];
+                }
+
+                if (!members || members.length === 0) {
+                    await interaction.respond([]);
+                    return;
+                }
+
+                // Filter members based on user input (search display_name or name)
+                const searchQuery = focusedOption.value.toLowerCase();
+                const filtered = members
+                    .filter((m: any) => {
+                        const displayName = (m.display_name || m.name).toLowerCase();
+                        const name = m.name.toLowerCase();
+                        return displayName.includes(searchQuery) || name.includes(searchQuery);
+                    })
+                    .slice(0, 25) // Discord limits to 25 autocomplete options
+                    .map((m: any) => ({
+                        name: m.display_name || m.name,
+                        value: m.display_name || m.name
+                    }));
+
+                await interaction.respond(filtered);
+            } catch (error) {
+                console.error('Error in autocomplete:', error);
+                await interaction.respond([]);
+            }
         }
     }
 }

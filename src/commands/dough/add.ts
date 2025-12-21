@@ -2,10 +2,6 @@ import {
     ChatInputCommandInteraction,
     SlashCommandSubcommandBuilder,
     EmbedBuilder,
-    ActionRowBuilder,
-    StringSelectMenuBuilder,
-    StringSelectMenuInteraction,
-    ComponentType,
     MessageFlags
 } from 'discord.js';
 import { doughAPI } from '../../utils/doughAPI';
@@ -13,12 +9,20 @@ import { doughAPI } from '../../utils/doughAPI';
 export default {
     data: new SlashCommandSubcommandBuilder()
         .setName('add')
-        .setDescription('Add a member to the front'),
+        .setDescription('Add a member to the front')
+        .addStringOption(option =>
+            option
+                .setName('member')
+                .setDescription('Member name (searches display name)')
+                .setRequired(true)
+                .setAutocomplete(true)
+        ),
 
     async execute(interaction: ChatInputCommandInteraction) {
         try {
-            // Defer reply as this might take a moment
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+            const memberQuery = interaction.options.getString('member', true);
 
             // Get all members
             const members = await doughAPI.getMembers();
@@ -30,159 +34,48 @@ export default {
                 return;
             }
 
-            // Create select menu with all members
-            const selectMenu = new StringSelectMenuBuilder()
-                .setCustomId('select_member_to_add')
-                .setPlaceholder('Select a member to add to front')
-                .addOptions(
-                    members.slice(0, 25).map((member: any) => {
-                        const option: any = {
-                            label: member.display_name || member.name,
-                            description: member.pronouns || 'No pronouns set',
-                            value: member.id
-                        };
-                        
-                        // Only add emoji if it exists and is a single emoji character
-                        const emoji = member.tags && member.tags.length > 0 ? member.tags[0] : null;
-                        if (emoji && /^\p{Emoji}$/u.test(emoji)) {
-                            option.emoji = emoji;
-                        }
-                        
-                        return option;
-                    })
+            // Search for member by display name (case-insensitive)
+            const searchQuery = memberQuery.toLowerCase();
+            const foundMember = members.find((m: any) => 
+                (m.display_name || m.name).toLowerCase() === searchQuery ||
+                m.name.toLowerCase() === searchQuery
+            );
+
+            if (!foundMember) {
+                // Try partial match
+                const partialMatches = members.filter((m: any) =>
+                    (m.display_name || m.name).toLowerCase().includes(searchQuery) ||
+                    m.name.toLowerCase().includes(searchQuery)
                 );
 
-            const row = new ActionRowBuilder<StringSelectMenuBuilder>()
-                .addComponents(selectMenu);
-
-            const embed = new EmbedBuilder()
-                .setColor(0x5865F2)
-                .setTitle('➕ Add Member to Front')
-                .setDescription('Select a member from the dropdown below to add them to the front.')
-                .setFooter({ text: 'Selection will expire in 60 seconds' });
-
-            const response = await interaction.editReply({
-                embeds: [embed],
-                components: [row]
-            });
-
-            // Create collector for select menu
-            const collector = response.createMessageComponentCollector({
-                componentType: ComponentType.StringSelect,
-                time: 60_000 // 1 minute
-            });
-
-            collector.on('collect', async (i: StringSelectMenuInteraction) => {
-                // Only allow the original user to use the select menu
-                if (i.user.id !== interaction.user.id) {
-                    await i.reply({
-                        content: 'This menu is not for you!',
-                        ephemeral: true
+                if (partialMatches.length === 0) {
+                    await interaction.editReply({
+                        content: `❌ No member found matching "${memberQuery}"`
                     });
                     return;
                 }
 
-                const selectedMemberId = i.values[0];
-                const selectedMember = members.find((m: any) => m.id === selectedMemberId);
-
-                try {
-                    // Get current fronters first
-                    const currentFronters = await doughAPI.getFronters();
-                    const currentMemberIds: string[] = currentFronters.members?.map((m: any) => m.id) || [];
-                    
-                    // Check if member is already fronting
-                    if (currentMemberIds.includes(selectedMemberId)) {
-                        const infoEmbed = new EmbedBuilder()
-                            .setColor(0xFEE75C) // Yellow
-                            .setTitle('ℹ️ Already Fronting')
-                            .setDescription(`**${selectedMember?.display_name || selectedMember?.name}** is already in the front!`)
-                            .addFields({
-                                name: 'Current Fronters',
-                                value: currentFronters.members.length > 0
-                                    ? currentFronters.members.map((f: any) => `• ${f.display_name || f.name}`).join('\n')
-                                    : 'None'
-                            })
-                            .setTimestamp();
-
-                        await i.update({
-                            embeds: [infoEmbed],
-                            components: []
-                        });
-                        
-                        collector.stop();
-                        return;
-                    }
-                    
-                    // Add the new member to the existing fronters
-                    const newMemberIds: string[] = [...currentMemberIds, selectedMemberId];
-                    const result = await doughAPI.multiSwitch(newMemberIds);
-
-                    if (result.status === 'success') {
-                        const successEmbed = new EmbedBuilder()
-                            .setColor(0x57F287) // Green
-                            .setTitle('✅ Member Added to Front')
-                            .setDescription(`**${selectedMember?.display_name || selectedMember?.name}** has been added to the front!`)
-                            .addFields({
-                                name: 'Current Fronters',
-                                value: result.fronters.length > 0
-                                    ? result.fronters.map((f: any) => `• ${f.display_name || f.name}`).join('\n')
-                                    : 'None'
-                            })
-                            .setTimestamp();
-
-                        await i.update({
-                            embeds: [successEmbed],
-                            components: []
-                        });
-                    } else {
-                        const errorEmbed = new EmbedBuilder()
-                            .setColor(0xED4245) // Red
-                            .setTitle('❌ Failed to Add Member')
-                            .setDescription(result.message || 'Unknown error occurred')
-                            .setTimestamp();
-
-                        await i.update({
-                            embeds: [errorEmbed],
-                            components: []
-                        });
-                    }
-
-                    collector.stop();
-                } catch (error) {
-                    const errorEmbed = new EmbedBuilder()
-                        .setColor(0xED4245)
-                        .setTitle('❌ Error')
-                        .setDescription(`Failed to add member: ${error instanceof Error ? error.message : 'Unknown error'}`)
-                        .setTimestamp();
-
-                    await i.update({
-                        embeds: [errorEmbed],
-                        components: []
-                    });
-
-                    collector.stop();
+                if (partialMatches.length === 1) {
+                    // Only one partial match, use it
+                    const member = partialMatches[0];
+                    await addMemberToFront(interaction, member, members);
+                    return;
                 }
-            });
 
-            collector.on('end', async (collected) => {
-                if (collected.size === 0) {
-                    // Timeout - disable the select menu
-                    const timeoutEmbed = new EmbedBuilder()
-                        .setColor(0xFEE75C) // Yellow
-                        .setTitle('⏱️ Selection Timed Out')
-                        .setDescription('You took too long to select a member. Please run the command again.')
-                        .setTimestamp();
+                // Multiple matches - show options
+                const matchList = partialMatches
+                    .slice(0, 10)
+                    .map((m: any) => `• ${m.display_name || m.name}`)
+                    .join('\n');
 
-                    try {
-                        await interaction.editReply({
-                            embeds: [timeoutEmbed],
-                            components: []
-                        });
-                    } catch (error) {
-                        // Message might have been deleted
-                    }
-                }
-            });
+                await interaction.editReply({
+                    content: `❌ Multiple members found matching "${memberQuery}":\n${matchList}\n\nPlease be more specific.`
+                });
+                return;
+            }
+
+            // Exact match found
+            await addMemberToFront(interaction, foundMember, members);
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -201,3 +94,69 @@ export default {
         }
     }
 };
+
+async function addMemberToFront(
+    interaction: ChatInputCommandInteraction,
+    member: any,
+    allMembers: any[]
+) {
+    try {
+        // Get current fronters
+        const currentFronters = await doughAPI.getFronters();
+        const currentMemberIds: string[] = currentFronters.members?.map((m: any) => m.id) || [];
+        
+        // Check if member is already fronting
+        if (currentMemberIds.includes(member.id)) {
+            const infoEmbed = new EmbedBuilder()
+                .setColor(0xFEE75C) // Yellow
+                .setTitle('ℹ️ Already Fronting')
+                .setDescription(`**${member.display_name || member.name}** is already in the front!`)
+                .addFields({
+                    name: 'Current Fronters',
+                    value: currentFronters.members.length > 0
+                        ? currentFronters.members.map((f: any) => `• ${f.display_name || f.name}`).join('\n')
+                        : 'None'
+                })
+                .setTimestamp();
+
+            await interaction.editReply({ embeds: [infoEmbed] });
+            return;
+        }
+        
+        // Add the new member to the existing fronters
+        const newMemberIds: string[] = [...currentMemberIds, member.id];
+        const result = await doughAPI.multiSwitch(newMemberIds);
+
+        if (result.status === 'success') {
+            const successEmbed = new EmbedBuilder()
+                .setColor(0x57F287) // Green
+                .setTitle('✅ Member Added to Front')
+                .setDescription(`**${member.display_name || member.name}** has been added to the front!`)
+                .addFields({
+                    name: 'Current Fronters',
+                    value: result.fronters.length > 0
+                        ? result.fronters.map((f: any) => `• ${f.display_name || f.name}`).join('\n')
+                        : 'None'
+                })
+                .setTimestamp();
+
+            await interaction.editReply({ embeds: [successEmbed] });
+        } else {
+            const errorEmbed = new EmbedBuilder()
+                .setColor(0xED4245) // Red
+                .setTitle('❌ Failed to Add Member')
+                .setDescription(result.message || 'Unknown error occurred')
+                .setTimestamp();
+
+            await interaction.editReply({ embeds: [errorEmbed] });
+        }
+    } catch (error) {
+        const errorEmbed = new EmbedBuilder()
+            .setColor(0xED4245)
+            .setTitle('❌ Error')
+            .setDescription(`Failed to add member: ${error instanceof Error ? error.message : 'Unknown error'}`)
+            .setTimestamp();
+
+        await interaction.editReply({ embeds: [errorEmbed] });
+    }
+}
