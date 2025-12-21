@@ -5,7 +5,8 @@ import {
     ActionRowBuilder,
     StringSelectMenuBuilder,
     StringSelectMenuInteraction,
-    ComponentType
+    ComponentType,
+    MessageFlags
 } from 'discord.js';
 
 interface CommandCategory {
@@ -140,7 +141,8 @@ export default {
 
         const response = await interaction.reply({
             embeds: [embed],
-            components: [row]
+            components: [row],
+            flags: MessageFlags.Ephemeral
         });
 
         // Create a collector to handle select menu interactions

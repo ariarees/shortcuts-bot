@@ -92,6 +92,40 @@ class DoughAPIClient {
     }
 
     /**
+     * Add a member to the front
+     */
+    async addFronter(memberId: string): Promise<{ success: boolean; message: string; fronters: any[] }> {
+        try {
+            const response = await this.client.post('/api/bot/fronters/add', {
+                member_id: memberId
+            });
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                throw new Error(`Failed to add fronter: ${error.response?.data?.detail || error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Remove a member from the front
+     */
+    async removeFronter(memberId: string): Promise<{ success: boolean; message: string; fronters: any[] }> {
+        try {
+            const response = await this.client.post('/api/bot/fronters/remove', {
+                member_id: memberId
+            });
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                throw new Error(`Failed to remove fronter: ${error.response?.data?.detail || error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    /**
      * Regenerate the bot access token (self-regeneration)
      */
     async regenerateToken(): Promise<{ success: boolean; message: string; new_token: string }> {

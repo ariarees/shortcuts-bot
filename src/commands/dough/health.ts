@@ -1,7 +1,8 @@
 import {
     ChatInputCommandInteraction,
     SlashCommandSubcommandBuilder,
-    EmbedBuilder
+    EmbedBuilder,
+    MessageFlags
 } from 'discord.js';
 import { doughAPI } from '../../utils/doughAPI';
 
@@ -11,7 +12,7 @@ export default {
         .setDescription('Check connection to Doughmination website API'),
 
     async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply();
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         try {
             const health = await doughAPI.healthCheck();
