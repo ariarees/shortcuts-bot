@@ -131,13 +131,15 @@ async function deployCommands() {
             const commandJson = commandData.find(c => c.name === cmd.name);
             const version = commandJson ? getCommandVersion(commandJson) : 'unknown';
             
-            // Extract subcommand IDs if they exist
+            // Note: Discord's API doesn't return subcommand IDs in the command response
+            // Subcommands are part of the command structure but don't have separate IDs
+            // Only the parent command has an ID that can be used for mentions
             const subcommands: SubcommandRecord[] = [];
             if (cmd.options && Array.isArray(cmd.options)) {
                 for (const option of cmd.options) {
                     if (option.type === 1) { // Type 1 = SUB_COMMAND
                         subcommands.push({
-                            id: option.id || 'unknown',
+                            id: 'N/A', // Discord doesn't provide separate IDs for subcommands
                             name: option.name
                         });
                     }
@@ -169,16 +171,14 @@ async function deployCommands() {
                 console.log(`✓ /${cmd.name.padEnd(20)} ID: ${cmd.id}`);
             }
 
-            // Display subcommands if they exist
+            // Display subcommands if they exist (for reference only - no separate IDs)
             if (subcommands.length > 0) {
                 for (const subCmd of subcommands) {
                     const oldSubCmd = oldRecord?.subcommands?.find(s => s.name === subCmd.name);
                     if (!oldSubCmd) {
-                        console.log(`   ✨ NEW: ${subCmd.name.padEnd(16)} ID: ${subCmd.id}`);
-                    } else if (oldSubCmd.id !== subCmd.id) {
-                        console.log(`   🔄 CHANGED: ${subCmd.name.padEnd(16)} ID: ${subCmd.id} (was: ${oldSubCmd.id})`);
+                        console.log(`   ✨ ${subCmd.name}`);
                     } else {
-                        console.log(`   ✓ ${subCmd.name.padEnd(16)} ID: ${subCmd.id}`);
+                        console.log(`   ✓ ${subCmd.name}`);
                     }
                 }
             }
