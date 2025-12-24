@@ -318,7 +318,7 @@ class HytaleAPIClient {
                 params: { username },
                 headers,
                 validateStatus: (status) => status === 200 || status === 400
-            }
+            } 
         );
 
         // 400 = available, 200 = taken

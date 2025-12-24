@@ -1,11 +1,17 @@
 services:
   bot:
-    build: .
+    build: bot
     container_name: clove-bot
     restart: unless-stopped
     env_file:
       - .env
     volumes:
-      - ./src:/app/src
+      - ./bot/src:/app/src
       - ./logs:/app/logs
       - ./command-ids.json:/app/command-ids.json
+  hytale-api:
+    build: api
+    container_name: hytale-api
+    env_file:
+      - .env
+    restart: unless-stopped
