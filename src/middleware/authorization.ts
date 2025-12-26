@@ -17,7 +17,7 @@ const FRIEND_IDS = [
 ];
 
 /** Commands that require owner-level access */
-const OWNER_ONLY_COMMANDS = [
+const OWNER_ONLY_COMMANDS: string[] = [
     // No longer blocking entire 'dough' command
 ];
 
