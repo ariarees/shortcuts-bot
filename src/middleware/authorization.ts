@@ -18,7 +18,20 @@ const FRIEND_IDS = [
 
 /** Commands that require owner-level access */
 const OWNER_ONLY_COMMANDS = [
-    'dough' // Sensitive API access
+    // No longer blocking entire 'dough' command
+];
+
+/** Subcommands that require owner-level access (format: "command:subcommand") */
+const OWNER_ONLY_SUBCOMMANDS = [
+    'dough:add',      // Only owner can add fronters
+    'dough:remove',   // Only owner can remove fronters
+    'dough:lockout',  // Only owner can regenerate token
+    'dough:health',   // Only owner can check API health
+];
+
+/** Subcommands that friends CAN use (format: "command:subcommand") */
+const FRIEND_ALLOWED_SUBCOMMANDS = [
+    'dough:check',    // Friends can check who's fronting
 ];
 
 export enum AuthLevel {
@@ -41,9 +54,13 @@ export function getAuthLevel(userId: string): AuthLevel {
 }
 
 /**
- * Check if a user is authorized to use a specific command
+ * Check if a user is authorized to use a specific command/subcommand
  */
-export function isAuthorizedForCommand(userId: string, commandName: string): boolean {
+export function isAuthorizedForCommand(
+    userId: string,
+    commandName: string,
+    subcommandName?: string
+): boolean {
     const authLevel = getAuthLevel(userId);
 
     // Unauthorized users can't use anything
@@ -56,13 +73,42 @@ export function isAuthorizedForCommand(userId: string, commandName: string): boo
         return true;
     }
 
-    // Friends can't use owner-only commands
-    if (OWNER_ONLY_COMMANDS.includes(commandName)) {
-        return false;
+    // For friends, check subcommand-level permissions
+    if (authLevel === AuthLevel.FRIEND) {
+        // Check if the entire command is owner-only
+        if (OWNER_ONLY_COMMANDS.includes(commandName)) {
+            return false;
+        }
+
+        // If there's a subcommand, check subcommand-level permissions
+        if (subcommandName) {
+            const fullSubcommandName = `${commandName}:${subcommandName}`;
+
+            // If it's explicitly owner-only, deny
+            if (OWNER_ONLY_SUBCOMMANDS.includes(fullSubcommandName)) {
+                return false;
+            }
+
+            // If it's explicitly allowed for friends, allow
+            if (FRIEND_ALLOWED_SUBCOMMANDS.includes(fullSubcommandName)) {
+                return true;
+            }
+
+            // If it's part of a command with owner-only subcommands but not explicitly allowed, deny
+            // This is a safelist approach - friends can only use what's explicitly allowed
+            const hasOwnerOnlySubcommands = OWNER_ONLY_SUBCOMMANDS.some(
+                sub => sub.startsWith(`${commandName}:`)
+            );
+            if (hasOwnerOnlySubcommands) {
+                return false;
+            }
+        }
+
+        // Friends can use everything else
+        return true;
     }
 
-    // Friends can use everything else
-    return true;
+    return false;
 }
 
 /**
@@ -75,13 +121,30 @@ export function isAuthorized(interaction: Interaction): boolean {
     }
 
     const commandName = interaction.commandName;
-    return isAuthorizedForCommand(interaction.user.id, commandName);
+    
+    // Try to get subcommand name if it exists
+    let subcommandName: string | undefined;
+    try {
+        if (interaction.isChatInputCommand()) {
+            subcommandName = interaction.options.getSubcommand(false) || undefined;
+        } else if (interaction.isAutocomplete()) {
+            subcommandName = interaction.options.getSubcommand(false) || undefined;
+        }
+    } catch {
+        // No subcommand exists, that's fine
+    }
+
+    return isAuthorizedForCommand(interaction.user.id, commandName, subcommandName);
 }
 
 /**
  * Send an unauthorized response
  */
-export async function sendUnauthorizedResponse(interaction: Interaction, commandName?: string): Promise<void> {
+export async function sendUnauthorizedResponse(
+    interaction: Interaction,
+    commandName?: string,
+    subcommandName?: string
+): Promise<void> {
     if (!interaction.isRepliable()) return;
 
     const authLevel = getAuthLevel(interaction.user.id);
@@ -93,10 +156,24 @@ export async function sendUnauthorizedResponse(interaction: Interaction, command
         // Completely unauthorized
         title = '🔒 Unauthorized';
         description = 'You are not authorized to use this bot.';
-    } else if (authLevel === AuthLevel.FRIEND && commandName && OWNER_ONLY_COMMANDS.includes(commandName)) {
-        // Friend trying to use owner-only command
-        title = '🔒 Owner Only';
-        description = `The \`/${commandName}\` command is restricted to the bot owner for security reasons.`;
+    } else if (authLevel === AuthLevel.FRIEND && commandName) {
+        // Friend trying to use restricted command/subcommand
+        if (subcommandName) {
+            const fullSubcommandName = `${commandName}:${subcommandName}`;
+            if (OWNER_ONLY_SUBCOMMANDS.includes(fullSubcommandName)) {
+                title = '🔒 Owner Only';
+                description = `The \`/${commandName} ${subcommandName}\` command is restricted to the bot owner for security reasons.`;
+            } else {
+                title = '🔒 Owner Only';
+                description = `The \`/${commandName} ${subcommandName}\` command is restricted to the bot owner.`;
+            }
+        } else if (OWNER_ONLY_COMMANDS.includes(commandName)) {
+            title = '🔒 Owner Only';
+            description = `The \`/${commandName}\` command is restricted to the bot owner for security reasons.`;
+        } else {
+            title = '🔒 Unauthorized';
+            description = 'You do not have permission to use this command.';
+        }
     } else {
         // Fallback
         title = '🔒 Unauthorized';

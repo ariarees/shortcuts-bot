@@ -16,10 +16,21 @@ loadCommands().then(loaded => {
 export async function execute(interaction: Interaction) {
     // Check authorization first for all interactions
     if (!isAuthorized(interaction)) {
-        const commandName = interaction.isChatInputCommand() || interaction.isAutocomplete() 
-            ? interaction.commandName 
-            : undefined;
-        await sendUnauthorizedResponse(interaction, commandName);
+        let commandName: string | undefined;
+        let subcommandName: string | undefined;
+
+        if (interaction.isChatInputCommand() || interaction.isAutocomplete()) {
+            commandName = interaction.commandName;
+            
+            // Try to get subcommand name
+            try {
+                subcommandName = interaction.options.getSubcommand(false) || undefined;
+            } catch {
+                // No subcommand, that's fine
+            }
+        }
+
+        await sendUnauthorizedResponse(interaction, commandName, subcommandName);
         return;
     }
 
