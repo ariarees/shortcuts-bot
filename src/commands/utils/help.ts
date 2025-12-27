@@ -25,7 +25,8 @@ const categories: CommandCategory[] = [
             { name: '/dough add', description: 'Add a member to the front (autocomplete search)' },
             { name: '/dough remove', description: 'Remove a member from the front (autocomplete search)' },
             { name: '/dough health', description: 'Check API connection status' },
-            { name: '/dough lockout', description: '🚨 EMERGENCY: Regenerate bot token' }
+            { name: '/dough lockout', description: '🚨 EMERGENCY: Regenerate bot token' },
+            { name: '/dough check', description: 'List all members in the front' }
         ]
     },
     {
@@ -59,7 +60,33 @@ const categories: CommandCategory[] = [
         commands: [
             { name: '/fun cheese', description: 'Send the cheese GIF' },
             { name: '/fun crazy', description: 'I was crazy once...' },
-            { name: '/fun gayzy', description: 'I was gay once...'}
+            { name: '/fun gayzy', description: 'I was gay once...' },
+            { name: '/fun guzzle', description: 'Guzzle Guzzle!' },
+            { name: '/fun poof', description: 'I\'m outta here!' },
+            { name: '/fun burrow', description: '[Arachnophobia warning] Annoy the burrow.' },
+            { name: '/fun boop', description: 'Boop!' },
+            { name: '/fun stfu', description: 'Your honour, you wasn\'t even there!' }
+        ]
+    },
+    {
+        id: 'cat',
+        name: 'Cat',
+        emoji: '🐱',
+        commands: [
+            { name: '/cat meow', description: 'Meow!' },
+            { name: '/cat wantpets', description: 'Want pets!' },
+            { name: '/cat angry', description: 'Angry!' }
+        ]
+    },
+    {
+        id: 'gandalf',
+        name: 'Gandalf',
+        emoji: '🧙‍♂️',
+        commands: [
+            { name: '/gandalf delayed', description: 'Sorry Frodo, I was delayed' },
+            { name: '/gandalf youshallnotpass', description: 'You shall not pass!' },
+            { name: '/gandalf morning', description: 'Do you want to wish me a good morning?' }
+
         ]
     },
     {
@@ -67,7 +94,8 @@ const categories: CommandCategory[] = [
         name: 'Hytale',
         emoji: '🎮',
         commands: [
-            { name: '/hytale explain', description: 'Explain Hytale' }
+            { name: '/hytale explain', description: 'Explain Hytale' },
+            { name: '/hytale usercheck', description: 'Check Hytale username availability' }
         ]
     }
 ];
