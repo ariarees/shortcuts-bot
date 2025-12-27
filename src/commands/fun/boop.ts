@@ -3,7 +3,7 @@ import {
     SlashCommandSubcommandBuilder
 } from 'discord.js';
 
-const boop = 'https://tenor.com/en-GB/view/boop-nose-anime-gif-6287077';
+const boop = 'https://tenor.com/AxID.gif';
 
 export default {
     data: new SlashCommandSubcommandBuilder()
