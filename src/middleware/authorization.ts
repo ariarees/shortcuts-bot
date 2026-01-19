@@ -1,4 +1,6 @@
 import { Interaction, EmbedBuilder } from 'discord.js';
+import * as dotenv from '@dotenvx/dotenvx';
+dotenv.config()
 
 /**
  * Authorization levels for the bot
@@ -8,13 +10,17 @@ import { Interaction, EmbedBuilder } from 'discord.js';
  */
 
 /** Owner - Full access (you) */
-const OWNER_ID = '1025770042245251122';
+const OWNER_ID = process.env.OWNER_ID;
+
+if (!OWNER_ID || OWNER_ID === 'bot_owner_id') {
+  throw new Error('OWNER_ID is not defined in the environment variables.');
+}
+
 
 /** Friends - Limited access (non-sensitive commands only) */
-const FRIEND_IDS = [
-    '652597508027187240',
-    '810257561596461166',
-];
+const FRIEND_IDS = process.env.FRIEND_IDS
+  ? process.env.FRIEND_IDS.split(',').map(id => id.trim())
+  : [];
 
 /** Commands that require owner-level access */
 const OWNER_ONLY_COMMANDS: string[] = [

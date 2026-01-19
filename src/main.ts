@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits } from 'discord.js';
-import * as dotenv from 'dotenv';
+import * as dotenv from '@dotenvx/dotenvx';
 import { loadEvents } from './handlers/eventHandler';
 
 // Load environment variables
