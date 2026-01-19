@@ -3,11 +3,11 @@ services:
     build: .
     container_name: clove-bot
     restart: unless-stopped
-    environment:
-      # Pass the decryption key to the container
-      - DOTENV_PRIVATE_KEY=${DOTENV_PRIVATE_KEY}
+    # Load environment variables from .env.keys (contains DOTENV_PRIVATE_KEY)
+    env_file:
+      - .env.keys
     volumes:
-      - ./bot/src:/app/src
+      - ./src:/app/src
       - ./logs:/app/logs
       - ./command-ids.json:/app/command-ids.json
       # Mount the encrypted .env.vault file (read-only)
