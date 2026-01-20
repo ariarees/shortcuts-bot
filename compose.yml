@@ -3,12 +3,9 @@ services:
     build: .
     container_name: clove-bot
     restart: unless-stopped
-    # Load environment variables from .env.keys (contains DOTENV_PRIVATE_KEY)
-    env_file:
-      - .env.keys
     volumes:
       - ./src:/app/src
       - ./logs:/app/logs
       - ./command-ids.json:/app/command-ids.json
-      # Mount the encrypted .env.vault file (read-only)
-      - ./.env.vault:/app/.env.vault:ro
+      - ./.env:/app/.env:ro
+      - ./.env.keys:/app/.env.keys:ro
