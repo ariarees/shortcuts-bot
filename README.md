@@ -25,7 +25,7 @@ The bot also connects to the Doughmination System® API, to allow Clove to switc
 ## Contributors
 
 <div align="center">
-<a href="https://github.com/CloveTwilight3/love-shortcuts/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=CloveTwilight3/clove-shortcuts" />
+<a href="https://github.com/doughmination/shortcuts-bot/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=doughmination/shortcuts-bot" />
 </a>
 </div>
